@@ -14,9 +14,6 @@ import modelo.Paciente;
 import persistencia.ConexaoBanco;
 
 
-/*A classe PacienteDAO é responsável pela comunicação entre a aplicação e o banco de dados, ou seja,
-ela é responsável por realizar as operações de cadastro e busca de pacientes no banco de dados.
- */
 public class PacienteDAO {
 
     private ConexaoBanco conexao;
@@ -171,6 +168,34 @@ public class PacienteDAO {
         } catch (SQLException se) {
 
             throw new SQLException("Erro ao buscar dados do Banco! " + se.getMessage());
+        } finally {
+            con.close();
+        }
+    }
+    
+    public boolean cpfJaCadastrado(String cpf) throws SQLException {
+        try {
+            // String que receberá instrução SQL para verificar se o CPF já existe
+            String sql = "SELECT COUNT(*) FROM PACIENTE WHERE CPF = ?";
+
+            con = conexao.getConexao();
+            PreparedStatement pst = con.prepareStatement(sql);
+
+            // Atribuindo o valor do CPF ao parâmetro na consulta
+            pst.setString(1, cpf);
+
+            ResultSet rs = pst.executeQuery();
+
+            // Verificando se há algum resultado retornado (se o CPF já está cadastrado)
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                return count > 0; // Se count > 0, o CPF já está cadastrado
+            }
+
+            return false; // Caso contrário, o CPF não está cadastrado
+
+        } catch (SQLException se) {
+            throw new SQLException("Erro ao verificar CPF no Banco de Dados! " + se.getMessage());
         } finally {
             con.close();
         }

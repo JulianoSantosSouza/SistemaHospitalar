@@ -3,6 +3,7 @@ package visao;
 
 import dao.ConvenioDAO;
 import dao.PacienteDAO;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
@@ -49,6 +50,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jlRG = new javax.swing.JLabel();
         jtRG = new javax.swing.JTextField();
         jcConvenio = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
         jLayeredPane2 = new javax.swing.JLayeredPane();
         jbLimpar = new javax.swing.JButton();
         jbCadastrar1 = new javax.swing.JButton();
@@ -61,15 +63,15 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jLayeredPane1.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jLayeredPane1.setOpaque(true);
 
-        jlNome.setText("Nome");
+        jlNome.setText("Nome*");
         jLayeredPane1.add(jlNome);
         jlNome.setBounds(40, 20, 60, 30);
 
-        jlCpf.setText("CPF");
+        jlCpf.setText("CPF*");
         jLayeredPane1.add(jlCpf);
         jlCpf.setBounds(40, 60, 90, 30);
 
-        jlEndereco.setText("Endereço");
+        jlEndereco.setText("Endereço*");
         jLayeredPane1.add(jlEndereco);
         jlEndereco.setBounds(40, 140, 60, 30);
         jLayeredPane1.add(jtNome);
@@ -79,11 +81,11 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jLayeredPane1.add(jtEndereco);
         jtEndereco.setBounds(140, 140, 210, 30);
 
-        jlEspecialidade.setText("Convênio");
+        jlEspecialidade.setText("Convênio*");
         jLayeredPane1.add(jlEspecialidade);
         jlEspecialidade.setBounds(40, 300, 100, 30);
 
-        jlDataNasc.setText("Data Nascimento");
+        jlDataNasc.setText("Data Nascimento*");
         jLayeredPane1.add(jlDataNasc);
         jlDataNasc.setBounds(40, 260, 100, 30);
 
@@ -95,7 +97,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jLayeredPane1.add(jtTelefone);
         jtTelefone.setBounds(140, 180, 130, 30);
 
-        jlTelefone.setText("Telefone");
+        jlTelefone.setText("Telefone*");
         jLayeredPane1.add(jlTelefone);
         jlTelefone.setBounds(40, 180, 50, 30);
 
@@ -113,6 +115,12 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
 
         jLayeredPane1.add(jcConvenio);
         jcConvenio.setBounds(140, 300, 150, 30);
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(153, 153, 153));
+        jLabel1.setText("Informações do paciente obrigatória \"*\"");
+        jLayeredPane1.add(jLabel1);
+        jLabel1.setBounds(30, 340, 230, 14);
 
         jLayeredPane2.setBackground(new java.awt.Color(255, 255, 255));
         jLayeredPane2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -161,11 +169,46 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cadastrar() {
-        try {
-
+    private void cadastrar(){
+        
+            PacienteDAO pacinete = new PacienteDAO();
+            
+            // Verificando se os campos do paciente foi preeenchido corretamente
+             String nome = jtNome.getText();
+             String cpf = jtCpf.getText();
+             String endereco = jtEndereco.getText();
+             String telefone = jtTelefone.getText();
+           if (nome.isEmpty()){
+                JOptionPane.showMessageDialog(this, "Digite o nome do Paciente");
+            } else if (nome.length() >= 55) {
+                JOptionPane.showMessageDialog(this, "O nome não pode ter mais de 55 caracteres");
+            } else if (cpf.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Digite o CPF do Paciente");
+            }  else if (!cpf.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")) {
+                JOptionPane.showMessageDialog(this, "O CPF deve estar no formato 'xxx.xxx.xxx-xx'");
+                jtCpf.setText(""); // Limpando o campo para digitar novamente
+            }else{
+                try{
+                    if (pacinete.cpfJaCadastrado(cpf)) {
+                        JOptionPane.showMessageDialog(this, "CPF já cadastrado. Insira um CPF único.");
+                        jtCpf.setText(""); // Limpando o campo para digitar novamente
+                    }else if(endereco.isEmpty()){
+                        JOptionPane.showMessageDialog(this, "Digite o Endereço do Paciente");
+                    } else if (endereco.length() >= 200) {
+                        JOptionPane.showMessageDialog(this, "O Endereço não pode ter mais de 200 caracteres");
+                    }else if (telefone.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Digite o telefone do Paciente");
+                    } else if (!telefone.matches("\\(\\d{2}\\)\\d{5}-\\d{4}")) {
+                        JOptionPane.showMessageDialog(this, "O telefone deve ter o formato: '(xx)xxxxx-xxxx'");
+                    }else {
+                    }
+                }catch (SQLException ex) {
+                // Trate a exceção aqui, por exemplo, exibir uma mensagem de erro.
+                ex.printStackTrace();}
+            
+            try{
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
+            
             Paciente pac = new Paciente();
 
             // Atribuindo valores aos atributos do Paciente com base nos campos preenchidos pelo usuário na tela
@@ -175,7 +218,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
             pac.setTelefone(jtTelefone.getText());
             pac.setCpf(jtCpf.getText());
             pac.setRg(jtRG.getText());
-
+            
             // Verificando se um convênio foi selecionado no JComboBox
             if (!(jcConvenio.getSelectedIndex() == 0)) {
 
@@ -192,10 +235,9 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
                 pac.setConvenio(convenio.getIdConvenio());
 
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Selecione um produto");
+                JOptionPane.showMessageDialog(this,"Selecione um Convênio");
             } // fecha else
-
+            
            // Criando objeto PacienteDAO para cadastrar o paciente no banco de dados
             PacienteDAO pacDAO = new PacienteDAO();
             pacDAO.cadastrarPaciente(pac);
@@ -204,20 +246,12 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
             JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "ERRO! " + e.getMessage());
+            JOptionPane.showMessageDialog(this,"Cadastro não realizado com sucesso");
         } // fecha catch
+    }
+}// fecha método
 
-    }// fecha método
-
-    //apaga valores dos campos
-    private void limpar() {
-        jtNome.setText("");
-        jtEndereco.setText("");
-        jtCpf.setText("");
-    }// fecha método
-
-    
+      
     // metodo para preencher o combo box com os produtos cadastrados no banco de dados
     private void preencherCombo() {
         try {
@@ -255,10 +289,25 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
 
     private void jbCadastrar1ActionPerformed(java.awt.event.ActionEvent evt) {
         cadastrar();
-        limpar();
+        
     }
+    
+    //apaga valores dos campos
+    private void limpar() {
+        jtNome.setText("");
+        jtCpf.setText("");
+        jtRG.setText("");
+        jtEndereco.setText("");
+        jtTelefone.setText("");
+        jtEmail1.setText("");
+        jtDataNasc.setText("");
+        jcConvenio.setSelectedIndex(0);
+        
+        
+    }// fecha método
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JLayeredPane jLayeredPane2;
     private javax.swing.JButton jbCadastrar1;
