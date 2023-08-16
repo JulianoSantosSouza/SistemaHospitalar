@@ -4,6 +4,7 @@ package visao;
 import dao.ConvenioDAO;
 import dao.PacienteDAO;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
@@ -46,7 +47,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jtTelefone = new javax.swing.JTextField();
         jlTelefone = new javax.swing.JLabel();
         jlEmail1 = new javax.swing.JLabel();
-        jtEmail1 = new javax.swing.JTextField();
+        jtEmail = new javax.swing.JTextField();
         jlRG = new javax.swing.JLabel();
         jtRG = new javax.swing.JTextField();
         jcConvenio = new javax.swing.JComboBox<>();
@@ -104,8 +105,8 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jlEmail1.setText("E-mal");
         jLayeredPane1.add(jlEmail1);
         jlEmail1.setBounds(40, 220, 90, 30);
-        jLayeredPane1.add(jtEmail1);
-        jtEmail1.setBounds(140, 220, 210, 30);
+        jLayeredPane1.add(jtEmail);
+        jtEmail.setBounds(140, 220, 210, 30);
 
         jlRG.setText("RG");
         jLayeredPane1.add(jlRG);
@@ -169,48 +170,80 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void cadastrar(){
+    private void cadastrar() throws SQLException{
         
-            PacienteDAO pacinete = new PacienteDAO();
+            PacienteDAO paciente = new PacienteDAO();
             
             // Verificando se os campos do paciente foi preeenchido corretamente
              String nome = jtNome.getText();
              String cpf = jtCpf.getText();
              String endereco = jtEndereco.getText();
              String telefone = jtTelefone.getText();
-           if (nome.isEmpty()){
+             String email = jtEmail.getText();
+             String datNasc = jtDataNasc.getText();
+             
+            //Verificando campo nome do Paciente
+             if (nome.isEmpty()){
                 JOptionPane.showMessageDialog(this, "Digite o nome do Paciente");
+                return;
             } else if (nome.length() >= 55) {
                 JOptionPane.showMessageDialog(this, "O nome não pode ter mais de 55 caracteres");
-            } else if (cpf.isEmpty()) {
+                jtNome.setText("");
+                return;
+            }
+             
+            //Verificando campo CPF do Paciente
+            if (cpf.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Digite o CPF do Paciente");
-            }  else if (!cpf.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")) {
-                JOptionPane.showMessageDialog(this, "O CPF deve estar no formato 'xxx.xxx.xxx-xx'");
+                return;
+            }else if (!cpf.matches("\\d{11}")) {
+                JOptionPane.showMessageDialog(this, "O CPF deve conter apenas números e ter 11 dígitos");
                 jtCpf.setText(""); // Limpando o campo para digitar novamente
-            }else{
-                try{
-                    if (pacinete.cpfJaCadastrado(cpf)) {
-                        JOptionPane.showMessageDialog(this, "CPF já cadastrado. Insira um CPF único.");
-                        jtCpf.setText(""); // Limpando o campo para digitar novamente
-                    }else if(endereco.isEmpty()){
-                        JOptionPane.showMessageDialog(this, "Digite o Endereço do Paciente");
-                    } else if (endereco.length() >= 200) {
-                        JOptionPane.showMessageDialog(this, "O Endereço não pode ter mais de 200 caracteres");
-                    }else if (telefone.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Digite o telefone do Paciente");
-                    } else if (!telefone.matches("\\(\\d{2}\\)\\d{5}-\\d{4}")) {
-                        JOptionPane.showMessageDialog(this, "O telefone deve ter o formato: '(xx)xxxxx-xxxx'");
-                    }else {
-                    }
-                }catch (SQLException ex) {
-                // Trate a exceção aqui, por exemplo, exibir uma mensagem de erro.
-                ex.printStackTrace();}
+                return;
+            }else if (paciente.cpfJaCadastrado(cpf)) {
+                JOptionPane.showMessageDialog(this, "CPF já cadastrado. Insira um CPF único.");
+                jtCpf.setText(""); // Limpando o campo para digitar novamente
+                return;
+                }
+                
+            //Verificando campo Endereço do Paciente
+            if(endereco.isEmpty()){
+                JOptionPane.showMessageDialog(this, "Digite o Endereço do Paciente");
+                return;
+            } else if (endereco.length() >= 200) {
+                JOptionPane.showMessageDialog(this, "O Endereço não pode ter mais de 200 caracteres");
+                jtEndereco.setText("");
+                return;
+            }
             
+            //Verificando campo Telefone do Paciente
+            if (telefone.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Digite o telefone do Paciente");
+                return;
+            } else if (!telefone.matches("\\(\\d{2}\\)\\d{5}-\\d{4}")) {
+                JOptionPane.showMessageDialog(this, "O telefone deve ter o formato: '(xx)xxxxx-xxxx'");
+                jtTelefone.setText("");
+                return;
+                
+                
+            //Caso o usuário tente cadastrar um email no campo destinado a essa informação    
+            }else if(!email.isEmpty() && !paciente.EmailValido(email)) {
+                JOptionPane.showMessageDialog(this, "Digite um e-mail válido");
+                return;
+            }
+            
+            //Verificando campo data de nascimento do Paciente
+            if(datNasc.isEmpty()){
+                JOptionPane.showMessageDialog(this, "Digite a Data de Nascimento do Paciente");
+                return;
+                }else{
+                    
+                }
+                        
             try{
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                        
             Paciente pac = new Paciente();
-
             // Atribuindo valores aos atributos do Paciente com base nos campos preenchidos pelo usuário na tela
             pac.setNome(jtNome.getText());
             pac.setEndereco(jtEndereco.getText());
@@ -218,6 +251,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
             pac.setTelefone(jtTelefone.getText());
             pac.setCpf(jtCpf.getText());
             pac.setRg(jtRG.getText());
+            pac.setEmail(jtEmail.getText());
             
             // Verificando se um convênio foi selecionado no JComboBox
             if (!(jcConvenio.getSelectedIndex() == 0)) {
@@ -244,12 +278,16 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
 
             // Mensagem de sucesso
             JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,"Cadastro não realizado com sucesso");
-        } // fecha catch
-    }
-}// fecha método
+            limpar();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Erro ao cadastrar paciente: ");
+            } catch (ParseException pe) {
+                JOptionPane.showMessageDialog(this, "Erro ao converter data: ");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Cadastro não realizado com sucesso");
+            }
+        }
+    
 
       
     // metodo para preencher o combo box com os produtos cadastrados no banco de dados
@@ -288,7 +326,12 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
     }
 
     private void jbCadastrar1ActionPerformed(java.awt.event.ActionEvent evt) {
-        cadastrar();
+        try {
+            cadastrar();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao cadastrar paciente: " + ex.getMessage());
+        }
+        
         
     }
     
@@ -299,7 +342,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
         jtRG.setText("");
         jtEndereco.setText("");
         jtTelefone.setText("");
-        jtEmail1.setText("");
+        jtEmail.setText("");
         jtDataNasc.setText("");
         jcConvenio.setSelectedIndex(0);
         
@@ -323,7 +366,7 @@ public class GuiCadPaciente extends javax.swing.JInternalFrame {
     private javax.swing.JLabel jlTelefone;
     private javax.swing.JTextField jtCpf;
     private javax.swing.JTextField jtDataNasc;
-    private javax.swing.JTextField jtEmail1;
+    private javax.swing.JTextField jtEmail;
     private javax.swing.JTextField jtEndereco;
     private javax.swing.JTextField jtNome;
     private javax.swing.JTextField jtRG;
